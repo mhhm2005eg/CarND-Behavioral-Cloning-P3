@@ -100,7 +100,7 @@ def csv_load_images(image_depth=image_depth, norm_image=norm_image, clip_image=c
         train_x_cliped = train_x_normalized[:, removed_pixels:, :, :]
         image_hight -= removed_pixels
     else:
-        train_x_cliped = None
+        train_x_cliped = train_x_normalized
         # print(train_x.shape)
     if save:
         dist_pickle = dict()

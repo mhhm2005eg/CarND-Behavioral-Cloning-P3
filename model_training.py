@@ -86,7 +86,7 @@ def VN_model():
     #images, train_x_gray, train_x_normalized, train_x_cliped, train_y = load_images(image_depth=1, norm_image=True, clip_image=True, save=True)
     images, train_x_gray, train_x_normalized, train_x_cliped, train_y = load_images(image_depth=image_depth, norm_image=False, clip_image=True, save=True)
 
-    train_x = images
+    train_x = train_x_cliped
     model = Sequential([
     Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(image_hight, image_width, image_depth)),
     #Conv2D(64, (5, 5), activation='relu', input_shape=(image_hight, image_width, image_depth), padding='SAME'),
