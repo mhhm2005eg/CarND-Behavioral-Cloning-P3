@@ -18,6 +18,7 @@ from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
 from sklearn.utils import shuffle
 from keras.layers import Input, Lambda
+from keras.preprocessing.image import ImageDataGenerator
 
 from common import *
 import common
@@ -92,19 +93,19 @@ def VN_model():
     #Conv2D(64, (5, 5), activation='relu', input_shape=(image_hight, image_width, image_depth), padding='SAME'),
     Conv2D(64, (5, 5), activation='relu', padding='SAME'),
     #Dropout(0.25),
-    MaxPooling2D(pool_size=(4, 4)),
+    #MaxPooling2D(pool_size=(4, 4)),
     Conv2D(64, (5, 5), activation='relu', padding='SAME'),
     #Dropout(0.25),
     MaxPooling2D(pool_size=(3, 3)),
     Conv2D(48, (5, 5), activation='relu', padding='SAME'),
     #Dropout(0.25),
-    MaxPooling2D(pool_size=(2, 2)),
-    Conv2D(63, (3, 3), activation='relu', padding='SAME'),
+    #MaxPooling2D(pool_size=(2, 2)),
+    Conv2D(32, (3, 3), activation='relu', padding='SAME'),
     #Dropout(0.25),
     MaxPooling2D(pool_size=(2, 2)),
     Conv2D(24, (3, 3), activation='relu', padding='SAME'),
     #Dropout(0.25),
-    MaxPooling2D(pool_size=(2, 2)),
+    #MaxPooling2D(pool_size=(2, 2)),
     Conv2D(16, (1, 1), activation='relu', padding='SAME'),
     Flatten(),
     #Dense(128, activation = "relu"),
@@ -121,7 +122,17 @@ def VN_model():
     model.compile(optimizer='Adam', loss='mse', metrics=['accuracy'])
 
     train_x, train_y = shuffle(train_x, train_y)
-    model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=16, epochs=5)
+
+    datagen = ImageDataGenerator(
+        featurewise_center=True,
+        featurewise_std_normalization=True,
+        rotation_range=20,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        horizontal_flip=True)
+
+    #model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=16, epochs=5)
+    model.fit_generator(datagen.flow(train_x, train_y, batch_size=16, shuffle=True), epochs=5)
 
 
 def pre_trained_model():
@@ -168,7 +179,7 @@ def pre_trained_model():
 def main():
     VN_model()
     #pre_trained_model()
-    #model.save("model.h5")
+    model.save("model.h5")
 
 
 # -------------------------------------
