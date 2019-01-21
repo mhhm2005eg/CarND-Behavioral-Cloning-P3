@@ -15,6 +15,40 @@ removed_pixels = 50
 image_width = 320
 image_hight = 160
 
+def simulation_preprocesss(image_sample, image_depth=image_depth, norm_image=norm_image, clip_image=clip_image):
+    # Gray scale
+    if image_depth == 1:
+        print("Convert to gray scale ...")
+        train_x_gray = np.sum(image_sample / 3, axis=2, keepdims=True)
+
+        # print(train_x.shape)
+        # print(len(images))
+        # exit(0)
+        # Normalize
+        if norm_image:
+            print("Normalization ...")
+            train_x_normalized = (train_x_gray - 128) / 128
+        else:
+            train_x_normalized = train_x_gray
+    else:
+        train_x_gray = None
+        if norm_image:
+            print("Normalization ...")
+            train_x_normalized = (image_sample - 128) / 128
+        else:
+            train_x_normalized = image_sample
+
+
+    # Clip images
+    if clip_image:
+        print("Data Clipping ...")
+        train_x_cliped = train_x_normalized[removed_pixels:, :, :]
+        #image_hight -= removed_pixels
+    else:
+        train_x_cliped = train_x_normalized
+        # print(train_x.shape)
+
+    return  train_x_cliped
 
 def save_nn(dist_pickle, samples_folder=data_path):
     # Save the camera calibration result for later use (we won't worry about rvecs / tvecs)
