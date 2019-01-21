@@ -19,19 +19,21 @@ from keras.layers.pooling import MaxPooling2D
 from sklearn.utils import shuffle
 from keras.layers import Input, Lambda
 from keras.preprocessing.image import ImageDataGenerator
+from keras.utils.vis_utils import plot_model
+from keras.utils import multi_gpu_model
 
 batch_size = 16
-epochs = 5
+epochs = 1
 
-GPU_MEMORY_SIZE_GigBYTES = 4
+GPU_MEMORY_SIZE_GigBYTES = 2
 GPU_MEMORY_SIZE_BYTES = (GPU_MEMORY_SIZE_GigBYTES*(2**30))
 #print(GPU_MEMORY_SIZE_BYTES)
 Max_trainable_parameters = GPU_MEMORY_SIZE_BYTES/(4*batch_size)
 print("Configured device internal memory %d Giga bytes" %GPU_MEMORY_SIZE_GigBYTES)
-print("You can train up to %d parameters" %Max_trainable_parameters)
+print("You can train up to %s parameters" %"{:,}".format(Max_trainable_parameters))
 from common import *
 import common
-Model_function = "pre_trained_model"
+Model_function = "VN_model"
 pre_trained_model = "VGG16"
 #keras transfer learning
 # VGG
@@ -92,6 +94,7 @@ def seq_model():
 
     model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=32, epochs=10)
 
+
 def VN_model():
     global model
     #images, train_x_gray, train_x_normalized, train_x_cliped, train_y = load_images(image_depth=1, norm_image=True, clip_image=True, save=True)
@@ -122,20 +125,26 @@ def VN_model():
     Conv2D(24, (3, 3), activation='relu', padding='SAME'),
     #Dropout(0.25),
     #MaxPooling2D(pool_size=(2, 2)),
-    Conv2D(16, (1, 1), activation='relu', padding='SAME'),
+    Conv2D(16, (3, 3), activation='relu', padding='SAME'),
     Flatten(),
     #Dense(128, activation = "relu"),
     #Dropout(0.5),
-    Dense(64, activation = "relu"),
+    Dense(512, activation="relu"),
     Dropout(0.5),
-    Dense(32, activation = "relu"),
+    Dense(256, activation="relu"),
+    Dropout(0.5),
+    Dense(128, activation="relu"),
+    Dropout(0.5),
+    Dense(64, activation="relu"),
     Dropout(0.5),
     Dense(1)]
     )
     print(model.summary())
 
+    parallel_model = multi_gpu_model(model, gpus=2)
     # Compile the model
-    model.compile(optimizer='Adam', loss='mse', metrics=['accuracy'])
+    #model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy'])
+    parallel_model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy'])
 
     train_x, train_y = shuffle(train_x, train_y)
 
@@ -147,7 +156,8 @@ def VN_model():
         height_shift_range=0.2,
         horizontal_flip=True)
 
-    model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=16, epochs=5)
+    #model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=batch_size, epochs=epochs)
+    parallel_model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=batch_size, epochs=epochs)
     #model.fit_generator(datagen.flow(train_x, train_y, batch_size=16, shuffle=True), epochs=5)
 
 
@@ -202,7 +212,11 @@ def main():
         Model_name_save = Model_function
     print("Saving Model: " + Model_name_save)
     model.save(Model_name_save)
-
+    # Open the file
+    with open(Model_name_save + '_report.txt', 'w') as fh:
+        # Pass the file handle in as a lambda function to make it callable
+        model.summary(print_fn=lambda x: fh.write(x + '\n'))
+    plot_model(model, to_file=Model_name_save+'.png', show_shapes=True, show_layer_names=True)
 
 # -------------------------------------
 # Entry point for the script

@@ -8,7 +8,7 @@ import gc
 data_path = "../CarND-Behavioral-Cloning-P3_data/data/"
 drive_log_file = data_path + "driving_log.csv"
 images_dir = data_path + "IMG/"
-image_depth = 1
+image_depth = 3
 clip_image = True
 norm_image = False
 removed_pixels = 50
@@ -95,8 +95,13 @@ def csv_load_images(image_depth=image_depth, norm_image=norm_image, clip_image=c
             index += 1
             continue
         source_path = line[0]
+        #print(source_path)
+        source_path = source_path.replace("\\", "/")
+        #print(source_path)
         file_name = source_path.split('/')[-1]
+        #print(file_name)
         current_image_path = images_dir + file_name
+        #print(current_image_path)
         # img = cv2.imread(current_image_path)
         img = ndimage.imread(current_image_path)
         images.append(img)
