@@ -32,10 +32,10 @@ print("You can train up to %d parameters" %Max_trainable_parameters)
 from common import *
 import common
 Model_function = "pre_trained_model"
-pre_trained_model = "googlenet"
+pre_trained_model = "VGG16"
 #keras transfer learning
 # VGG
-if pre_trained_model == "VGG":
+if pre_trained_model == "VGG16":
     from keras.applications.vgg16 import VGG16 as Model_def
     from keras.applications.vgg16 import preprocess_input
     from keras.applications.vgg16 import decode_predictions as vgg16_decode_predictions
