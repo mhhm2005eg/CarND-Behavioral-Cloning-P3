@@ -20,8 +20,18 @@ from sklearn.utils import shuffle
 from keras.layers import Input, Lambda
 from keras.preprocessing.image import ImageDataGenerator
 
+batch_size = 16
+epochs = 5
+
+GPU_MEMORY_SIZE_GigBYTES = 4
+GPU_MEMORY_SIZE_BYTES = (GPU_MEMORY_SIZE_GigBYTES*(2**30))
+#print(GPU_MEMORY_SIZE_BYTES)
+Max_trainable_parameters = GPU_MEMORY_SIZE_BYTES/(4*batch_size)
+print("Configured device internal memory %d Giga bytes" %GPU_MEMORY_SIZE_GigBYTES)
+print("You can train up to %d parameters" %Max_trainable_parameters)
 from common import *
 import common
+Model_function = "pre_trained_model"
 pre_trained_model = "googlenet"
 #keras transfer learning
 # VGG
@@ -43,7 +53,7 @@ elif pre_trained_model == "Resnet":
 if clip_image:
     image_hight -= removed_pixels
 
-freeze_flag = True
+freeze_flag = False
 
 #-------------
 # data loading
@@ -142,12 +152,14 @@ def VN_model():
 
 
 def pre_trained_model():
-    images, train_x_gray, train_x_normalized, train_x_cliped, train_y = csv_load_images(save=False)  # load_images()
+    global model
+
+    images, train_x_gray, train_x_normalized, train_x_cliped, train_y = csv_load_images(image_depth=3, norm_image=False, clip_image=False, save=False)  # load_images()
 
     train_x = images
 
     #global model, train_x, train_y
-    vgg16_model = Model_def(weights='imagenet', include_top=False, input_shape=(image_hight,image_width,3))
+    vgg16_model = Model_def(weights='imagenet', include_top=False, input_shape=train_x.shape[1:])
     ####  Freeze the loaded layer
     if freeze_flag == True:
         for layer in vgg16_model.layers:
@@ -172,8 +184,6 @@ def pre_trained_model():
     train_x, train_y = shuffle(train_x, train_y)
 
     # Train the model
-    batch_size = 16
-    epochs = 5
     # Note: we aren't using callbacks here since we only are using 5 epochs to conserve GPU time
     '''model.fit_generator(datagen.flow(X_train, y_one_hot_train, batch_size=batch_size),
                         steps_per_epoch=len(X_train) / batch_size, epochs=epochs, verbose=1,
@@ -183,10 +193,15 @@ def pre_trained_model():
     model.fit(train_x, train_y, batch_size=batch_size, epochs=epochs, validation_split=.2, shuffle=True)
 
 def main():
-    VN_model()
+    #VN_model()
+    exec(Model_function+"()")
     #pre_trained_model()
-    print("Saving Model ...")
-    model.save("model.h5")
+    if Model_function == "pre_trained_model":
+        Model_name_save = pre_trained_model
+    else:
+        Model_name_save = Model_function
+    print("Saving Model: " + Model_name_save)
+    model.save(Model_name_save)
 
 
 # -------------------------------------

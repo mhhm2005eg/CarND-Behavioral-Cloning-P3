@@ -15,6 +15,7 @@ removed_pixels = 50
 image_width = 320
 image_hight = 160
 
+
 def simulation_preprocesss(image_sample, image_depth=image_depth, norm_image=norm_image, clip_image=clip_image):
     # Gray scale
     if image_depth == 1:
