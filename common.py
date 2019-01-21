@@ -28,14 +28,14 @@ def simulation_preprocesss(image_sample, image_depth=image_depth, norm_image=nor
         # Normalize
         if norm_image:
             print("Normalization ...")
-            train_x_normalized = (train_x_gray - 128) / 128
+            train_x_normalized = (train_x_gray/255) -0.5
         else:
             train_x_normalized = train_x_gray
     else:
         train_x_gray = None
         if norm_image:
             print("Normalization ...")
-            train_x_normalized = (image_sample - 128) / 128
+            train_x_normalized = (image_sample/255) - 0.5
         else:
             train_x_normalized = image_sample
 
@@ -122,14 +122,14 @@ def csv_load_images(image_depth=image_depth, norm_image=norm_image, clip_image=c
         # Normalize
         if norm_image:
             print("Normalization ...")
-            train_x_normalized = (train_x_gray - 128) / 128
+            train_x_normalized = (train_x_gray/255) - 0.5
         else:
             train_x_normalized = train_x_gray
     else:
         train_x_gray = None
         if norm_image:
             print("Normalization ...")
-            train_x_normalized = (train_x - 128) / 128
+            train_x_normalized = (train_x/255) - 0.5
         else:
             train_x_normalized = train_x
 

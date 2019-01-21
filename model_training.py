@@ -25,6 +25,8 @@ from keras.utils import multi_gpu_model
 batch_size = 16
 epochs = 1
 
+CONTINUE = True
+MULTI_GPU = False
 GPU_MEMORY_SIZE_GigBYTES = 2
 GPU_MEMORY_SIZE_BYTES = (GPU_MEMORY_SIZE_GigBYTES*(2**30))
 #print(GPU_MEMORY_SIZE_BYTES)
@@ -33,7 +35,8 @@ print("Configured device internal memory %d Giga bytes" %GPU_MEMORY_SIZE_GigBYTE
 print("You can train up to %s parameters" %"{:,}".format(Max_trainable_parameters))
 from common import *
 import common
-Model_function = "VN_model"
+#Model_function = "VN_model"
+Model_function = "pre_trained_model"
 pre_trained_model = "VGG16"
 #keras transfer learning
 # VGG
@@ -140,11 +143,16 @@ def VN_model():
     Dense(1)]
     )
     print(model.summary())
+    if CONTINUE:
+        model.load_weights(filepath="./VN_model")
 
-    parallel_model = multi_gpu_model(model, gpus=2)
+    if MULTI_GPU:
+        parallel_model = multi_gpu_model(model, gpus=2)
     # Compile the model
-    #model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy'])
-    parallel_model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy'])
+    if MULTI_GPU:
+        parallel_model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy'])
+    else:
+        model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy'])
 
     train_x, train_y = shuffle(train_x, train_y)
 
@@ -156,8 +164,11 @@ def VN_model():
         height_shift_range=0.2,
         horizontal_flip=True)
 
-    #model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=batch_size, epochs=epochs)
-    parallel_model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=batch_size, epochs=epochs)
+    if MULTI_GPU:
+        parallel_model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=batch_size, epochs=epochs)
+    else:
+        model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=batch_size, epochs=epochs)
+
     #model.fit_generator(datagen.flow(train_x, train_y, batch_size=16, shuffle=True), epochs=5)
 
 
@@ -169,27 +180,30 @@ def pre_trained_model():
     train_x = images
 
     #global model, train_x, train_y
-    vgg16_model = Model_def(weights='imagenet', include_top=False, input_shape=train_x.shape[1:])
+    pretrained_model = Model_def(weights='imagenet', include_top=False, input_shape=train_x.shape[1:])
     ####  Freeze the loaded layer
     if freeze_flag == True:
-        for layer in vgg16_model.layers:
+        for layer in pretrained_model.layers:
             layer.trainable = False
-    #out_1 = vgg16_model(Input(shape=(image_hight,image_width,3)))
-    F = Flatten()(vgg16_model.layers[-1].output)
-    x = Dense(100, name="new_dense1", activation = "relu")(F)
+    #out_1 = pretrained_model(Input(shape=(image_hight,image_width,3)))
+    F = Flatten()(pretrained_model.layers[-1].output)
+    x = Dense(512, name="new_dense1", activation = "relu")(F)
     d = Dropout(0.5)(x)
 
     #x = Dense(200, name="new_dense1", activation = "relu")(out_1)
-    xx = Dense(50, name="new_dense2", activation = "relu")(d)
+    xx = Dense(256, name="new_dense2", activation = "relu")(d)
+    dd = Dropout(0.5)(xx)
+
+    xx = Dense(128, name="new_dense2", activation = "relu")(d)
     dd = Dropout(0.5)(xx)
 
     xxx = Dense(1, name="new_dense3")(dd)
-    model = Model(input=vgg16_model.input, output=xxx)
+    model = Model(input=pretrained_model.input, output=xxx)
     model.summary()
 
     # Compile the model
     model.compile(optimizer='Adam', loss='mse', metrics=['accuracy'])
-    #vgg16_predictions = vgg16_model.predict(train_x)
+    #vgg16_predictions = pretrained_model.predict(train_x)
     train_x = preprocess_input(train_x)
     train_x, train_y = shuffle(train_x, train_y)
 
@@ -212,6 +226,7 @@ def main():
         Model_name_save = Model_function
     print("Saving Model: " + Model_name_save)
     model.save(Model_name_save)
+    #model.loa
     # Open the file
     with open(Model_name_save + '_report.txt', 'w') as fh:
         # Pass the file handle in as a lambda function to make it callable
