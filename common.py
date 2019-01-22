@@ -105,8 +105,11 @@ def csv_load_images(image_depth=image_depth, norm_image=norm_image, clip_image=c
         # img = cv2.imread(current_image_path)
         img = ndimage.imread(current_image_path)
         images.append(img)
+        img_flipped = np.fliplr(img)
+        images.append(img_flipped)
         steering_measurement = float(line[3])
         steering_measurements.append(steering_measurement)
+        steering_measurements.append(-steering_measurement)
 
     train_x = np.array(images)
     train_y = np.array(steering_measurements)

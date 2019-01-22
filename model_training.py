@@ -175,7 +175,7 @@ def VN_model():
 def pre_trained_model():
     global model
 
-    images, train_x_gray, train_x_normalized, train_x_cliped, train_y = csv_load_images(image_depth=3, norm_image=False, clip_image=False, save=False)  # load_images()
+    images, train_x_gray, train_x_normalized, train_x_cliped, train_y = csv_load_images(image_depth=3, norm_image=False, clip_image=True, save=False)  # load_images()
 
     train_x = images
 
