@@ -35,8 +35,8 @@ print("Configured device internal memory %d Giga bytes" %GPU_MEMORY_SIZE_GigBYTE
 print("You can train up to %s parameters" %"{:,}".format(Max_trainable_parameters))
 from common import *
 import common
-#Model_function = "VN_model"
-Model_function = "pre_trained_model"
+Model_function = "VN_model"
+#Model_function = "pre_trained_model"
 pre_trained_model = "VGG16"
 #keras transfer learning
 # VGG
@@ -142,7 +142,7 @@ def VN_model():
     Dropout(0.5),
     Dense(1)]
     )
-    print(model.summary())
+    model.summary()
     if CONTINUE:
         model.load_weights(filepath="./VN_model")
 
