@@ -1,0 +1,9 @@
+data
+.ipynb_checkpoints
+*.h5
+models
+*.swp
+*.p
+*.pyc
+run1/
+out/
