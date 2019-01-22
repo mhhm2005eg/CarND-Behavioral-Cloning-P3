@@ -102,13 +102,13 @@ def VN_model():
     global model
     #images, train_x_gray, train_x_normalized, train_x_cliped, train_y = load_images(image_depth=1, norm_image=True, clip_image=True, save=True)
     images, train_x_gray, train_x_normalized, train_x_cliped, train_y = load_images(image_depth=image_depth, norm_image=False, clip_image=False, save=False)
-
+    '''
     print(np.max(images), np.min(images))
     print(np.max(train_x_gray), np.min(train_x_gray))
     print(np.max(train_x_normalized), np.min(train_x_normalized))
     print(np.max(train_x_cliped), np.min(train_x_cliped))
     print(np.max(train_y), np.min(train_y))
-
+    '''
     train_x = train_x_cliped
     model = Sequential([
     Cropping2D(cropping=((70, 25), (0, 0)), input_shape=(image_hight, image_width, image_depth)),
