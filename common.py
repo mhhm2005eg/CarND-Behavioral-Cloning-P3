@@ -4,6 +4,7 @@ import numpy as np
 from scipy import ndimage
 import csv
 import gc
+from PIL import Image
 
 data_path = "../CarND-Behavioral-Cloning-P3_data/data/"
 drive_log_file = data_path + "driving_log.csv"
@@ -163,3 +164,26 @@ def load_images(*args, **kwargs):
         return loc_load_nn_file(file_path)
     else:
         return csv_load_images(*args, **kwargs)
+
+def convert_figure_to_array(fig0):
+    fig0.canvas.draw()
+    data = np.fromstring(fig0.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+    w, h = fig0.canvas.get_width_height()
+    result = data.reshape((h, w, 3))
+    return result
+
+def store_image(image, name, dir=None, img_form="jpg"):
+    if not dir:
+        dir = "./out/"
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
+    name = dir + "/" + name + "." + img_form
+    print("Saving image: " + name)
+    if np.max(image) == 1:
+        image = image * 255
+
+    im = Image.fromarray(image)
+    if im.mode != 'RGB':
+       im = im.convert('RGB')
+    im.save(name)

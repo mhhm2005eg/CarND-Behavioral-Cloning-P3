@@ -17,7 +17,7 @@ from keras.layers.core import Dense, Activation, Flatten, Dropout
 from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
 from sklearn.utils import shuffle
-from keras.layers import Input, Lambda
+from keras.layers import Input, Lambda, Cropping2D
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils.vis_utils import plot_model
 from keras.utils import multi_gpu_model
@@ -25,7 +25,7 @@ from keras.utils import multi_gpu_model
 batch_size = 16
 epochs = 1
 
-CONTINUE = True
+CONTINUE = False
 MULTI_GPU = False
 GPU_MEMORY_SIZE_GigBYTES = 2
 GPU_MEMORY_SIZE_BYTES = (GPU_MEMORY_SIZE_GigBYTES*(2**30))
@@ -101,7 +101,7 @@ def seq_model():
 def VN_model():
     global model
     #images, train_x_gray, train_x_normalized, train_x_cliped, train_y = load_images(image_depth=1, norm_image=True, clip_image=True, save=True)
-    images, train_x_gray, train_x_normalized, train_x_cliped, train_y = load_images(image_depth=image_depth, norm_image=False, clip_image=True, save=True)
+    images, train_x_gray, train_x_normalized, train_x_cliped, train_y = load_images(image_depth=image_depth, norm_image=False, clip_image=False, save=False)
 
     print(np.max(images), np.min(images))
     print(np.max(train_x_gray), np.min(train_x_gray))
@@ -111,7 +111,8 @@ def VN_model():
 
     train_x = train_x_cliped
     model = Sequential([
-    Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(image_hight, image_width, image_depth)),
+    Cropping2D(cropping=((70, 25), (0, 0)), input_shape=(image_hight, image_width, image_depth)),
+    Lambda(lambda x: (x / 255.0) - 0.5),
     #Conv2D(64, (5, 5), activation='relu', input_shape=(image_hight, image_width, image_depth), padding='SAME'),
     Conv2D(64, (5, 5), activation='relu', padding='SAME'),
     #Dropout(0.25),
@@ -152,7 +153,8 @@ def VN_model():
     if MULTI_GPU:
         parallel_model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy'])
     else:
-        model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy'])
+        #model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer='Adam', loss='mse', metrics=['accuracy'])
 
     train_x, train_y = shuffle(train_x, train_y)
 
@@ -167,9 +169,20 @@ def VN_model():
     if MULTI_GPU:
         parallel_model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=batch_size, epochs=epochs)
     else:
-        model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=batch_size, epochs=epochs)
+        history_object = model.fit(train_x, train_y, validation_split=.2, shuffle=True, batch_size=batch_size, epochs=epochs)
 
     #model.fit_generator(datagen.flow(train_x, train_y, batch_size=16, shuffle=True), epochs=5)
+    ### plot the training and validation loss for each epoch
+    fig0 = plt.figure(0)
+    fig0.clf()
+    plt.plot(history_object.history['loss'])
+    plt.plot(history_object.history['val_loss'])
+    plt.title('model mean squared error loss')
+    plt.ylabel('mean squared error loss')
+    plt.xlabel('epoch')
+    plt.legend(['training set', 'validation set'], loc='upper right')
+    arr = convert_figure_to_array(fig0)
+    store_image(arr, "validation_accuracy", "./out")
 
 
 def pre_trained_model():
