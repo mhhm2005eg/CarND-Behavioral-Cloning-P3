@@ -3,7 +3,8 @@ import shutil
 from distutils.dir_util import copy_tree
 
 Main_data_dir  = "../CarND-Behavioral-Cloning-P3_data/"
-folders = ["data0", "data1", "data2"]
+folders = ["data0", "data1", "data2", "data3", "data4", "data5", "data6"]
+folders = ["data3", "data4", "data5", "data6"]
 log_file_name = "driving_log.csv"
 output_data_path = Main_data_dir + "data/"
 output_images_path = output_data_path + "IMG/"

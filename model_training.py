@@ -113,10 +113,9 @@ def VN_model():
     model = Sequential([
     Cropping2D(cropping=((70, 25), (0, 0)), input_shape=(image_hight, image_width, image_depth)),
     Lambda(lambda x: (x / 255.0) - 0.5),
-    #Conv2D(64, (5, 5), activation='relu', input_shape=(image_hight, image_width, image_depth), padding='SAME'),
-    Conv2D(64, (5, 5), activation='relu', padding='SAME'),
-    #Dropout(0.25),
-    #MaxPooling2D(pool_size=(4, 4)),
+    Conv2D(128, (5, 5), activation='relu', padding='SAME'),
+   #Dropout(0.25),
+    MaxPooling2D(pool_size=(4, 4)),
     Conv2D(64, (5, 5), activation='relu', padding='SAME'),
     #Dropout(0.25),
     MaxPooling2D(pool_size=(3, 3)),
@@ -131,16 +130,14 @@ def VN_model():
     #MaxPooling2D(pool_size=(2, 2)),
     Conv2D(16, (3, 3), activation='relu', padding='SAME'),
     Flatten(),
-    #Dense(128, activation = "relu"),
-    #Dropout(0.5),
     Dense(512, activation="relu"),
-    Dropout(0.5),
+    #Dropout(0.5),
     Dense(256, activation="relu"),
-    Dropout(0.5),
+    #Dropout(0.5),
     Dense(128, activation="relu"),
-    Dropout(0.5),
+    #Dropout(0.5),
     Dense(64, activation="relu"),
-    Dropout(0.5),
+    #Dropout(0.5),
     Dense(1)]
     )
     model.summary()
@@ -246,8 +243,16 @@ def main():
         model.summary(print_fn=lambda x: fh.write(x + '\n'))
     plot_model(model, to_file=Model_name_save+'.png', show_shapes=True, show_layer_names=True)
 
+def check_data():
+    print("Checking data ... ")
+    images, train_x_gray, train_x_normalized, train_x_cliped, train_y = load_images(image_depth=image_depth, norm_image=False, clip_image=False, save=False)
+    DISPLAY_DATA_SET_HISTOGRAM = True
+    if DISPLAY_DATA_SET_HISTOGRAM:
+        n, bins, patches = plt.hist(train_y, 200 , facecolor='blue', alpha=0.5)
+        plt.show()
 # -------------------------------------
 # Entry point for the script
 # -------------------------------------
 if __name__ == '__main__':
     main()
+    #check_data()
